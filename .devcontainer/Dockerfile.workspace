@@ -1,0 +1,10 @@
+# syntax = docker.io/docker/dockerfile:1.3
+FROM archlinux:base-devel
+# RUN --mount=type=cache,target=/var/cache/pacman/ \
+# --mount=type=cache,target=/var/cache/pacman/pkg \
+RUN yes | pacman -Sy \
+    bash \
+    curl \
+    docker \
+    git \
+    jq

@@ -1,0 +1,6 @@
+{
+  "name": "drmr",
+  "dockerComposeFile": "./docker-compose.yaml",
+  "service": "workspace",
+  "workspaceFolder": "/workspace"
+}
