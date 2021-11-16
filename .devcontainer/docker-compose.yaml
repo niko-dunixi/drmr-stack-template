@@ -34,7 +34,7 @@ services:
       - "8080:8080"
   frontend-install:
     << : *frontend-common
-    command: ["([ -f node_modules/done ] || npm install) && touch node_modules/done"]
+    command: ["([ -f node_modules/done ] || yarn install) && touch node_modules/done"]
     deploy:
       restart_policy:
         condition: "on-failure"
