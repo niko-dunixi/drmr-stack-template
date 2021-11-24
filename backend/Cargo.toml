@@ -1,10 +1,16 @@
 [package]
+edition = "2021"
 name = "backend"
 version = "0.1.0"
-edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = {version = "0.5.0-rc.1", features = ["json"]}
-serde = "1.0.130"
+claim = "0.5.0" # Assertions
+rocket = {version = "0.5.0-rc.1", features = ["json"]} 
+serde = "1.0.130" 
+uuid = {version = "0.8.2", features = ["v4"]}# domain_in_memory  
+
+[features]
+default = []
+domain_in_memory = []
