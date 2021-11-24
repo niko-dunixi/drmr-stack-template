@@ -1,4 +1,4 @@
-use super::Repository;
+use super::CrudRepository;
 use std::collections::HashMap;
 use std::error::Error;
 use std::hash::Hash;
@@ -9,14 +9,14 @@ pub struct InMemory<T: 'static + Clone> {
 }
 
 impl<Item: 'static + Clone> InMemory<Item> {
-    pub fn new() -> Box<dyn Repository<String, Item>> {
+    pub fn new() -> Box<dyn CrudRepository<String, Item>> {
         Box::new(InMemory::<Item> {
             data: HashMap::new(),
         })
     }
 }
 
-impl<Item: 'static + Clone> Repository<String, Item>
+impl<Item: 'static + Clone> CrudRepository<String, Item>
     for InMemory<Item>
 {
     fn create(&mut self, item: &Item) -> Result<String, Box<dyn Error>> {
@@ -25,8 +25,16 @@ impl<Item: 'static + Clone> Repository<String, Item>
         Ok(id)
     }
 
-    fn get(&self, id: &String) -> Result<Option<Item>, Box<dyn Error>> {
+    fn read(&self, id: &String) -> Result<Option<Item>, Box<dyn Error>> {
         Ok(self.data.get(id).cloned())
+    }
+
+    fn update(&mut self, id: &String, item: &Item) -> Result<Option<Item>, Box<dyn Error>> {
+        Ok(self.data.insert(id.clone(), item.clone()))
+    }
+
+    fn delete(&mut self, id: &String) -> Result<Option<Item>, Box<dyn Error>> {
+        Ok(self.data.remove(id))
     }
 }
 
@@ -37,23 +45,59 @@ mod tests {
 
     #[test]
     fn new_in_memory_repo() {
-        let _repo: Box<dyn Repository<String, String>> = InMemory::new();
+        let _repo: Box<dyn CrudRepository<String, String>> = InMemory::new();
     }
 
     #[test]
-    fn get_is_ok_none() {
-        let repo: Box<dyn Repository<String, String>> = InMemory::new();
+    fn read_is_none() {
+        let repo: Box<dyn CrudRepository<String, String>> = InMemory::new();
         let id = String::from("my-id-foo");
-        assert_ok_eq!(repo.get(&id), None);
+        assert_ok_eq!(repo.read(&id), None);
     }
 
     #[test]
-    fn get_is_ok_some() {
-        let mut repo: Box<dyn Repository<String, String>> = InMemory::new();
-        let item = String::from("Paul FREAKN Baker");
+    fn read_is_some() {
+        let mut repo: Box<dyn CrudRepository<String, String>> = InMemory::new();
+        let item = String::from("foo");
         let create_result = repo.create(&item);
         assert_ok!(&create_result);
+
         let id = create_result.unwrap();
-        assert_ok_eq!(repo.get(&id), Some(item));
+        assert_ok_eq!(repo.read(&id), Some(item));
+    }
+
+    #[test]
+    fn create_read_update() {
+        let mut repo: Box<dyn CrudRepository<String, String>> = InMemory::new();
+        let item_foo = String::from("foo");
+        let create_result = repo.create(&item_foo);
+        assert_ok!(&create_result);
+
+        let id = create_result.unwrap();
+        assert_ok_eq!(repo.read(&id), Some(item_foo.clone()));
+
+        let item_bar = String::from("bar");
+        assert_ok_eq!(repo.update(&id, &item_bar), Some(item_foo));
+        assert_ok_eq!(repo.read(&id), Some(item_bar));
+    }
+
+    #[test]
+    fn delete_none() {
+        let mut repo: Box<dyn CrudRepository<String, String>> = InMemory::new();
+        let id = String::from("my-id-foo");
+        let delete_result = repo.delete(&id);
+        assert_ok_eq!(delete_result, None);
+    }
+
+    #[test]
+    fn delete_some() {
+        let mut repo: Box<dyn CrudRepository<String, String>> = InMemory::new();
+        let item_foo = String::from("foo");
+        let create_result = repo.create(&item_foo);
+        assert_ok!(&create_result);
+
+        let id = create_result.unwrap();
+        assert_ok_eq!(repo.delete(&id), Some(item_foo));
+        assert_ok_eq!(repo.delete(&id), None);
     }
 }
